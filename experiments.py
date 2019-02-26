@@ -78,3 +78,53 @@ plt.imshow(wc, interpolation='bilinear')
 plt.axis('off')
 plt.savefig('orlando_wc.png', facecolor='k', bbox_inches="tight")
 plt.show()
+
+#########################
+# plot with twin axes of different scales
+t = np.arange(0.01, 10.0, 0.01)
+data1 = np.exp(t)
+data2 = np.sin(2 * np.pi * t)
+
+fig, ax1 = plt.subplots()
+
+color = 'tab:red'
+ax1.set_xlabel('time (s)')
+ax1.set_ylabel('exp', color=color)
+ax1.plot(t, data1, color=color)
+ax1.tick_params(axis='y', labelcolor=color)
+
+ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
+
+color = 'tab:blue'
+ax2.set_ylabel('sin', color=color)  # we already handled the x-label with ax1
+ax2.plot(t, data2, color=color)
+ax2.tick_params(axis='y', labelcolor=color)
+
+fig.tight_layout()  # otherwise the right y-label is slightly clipped
+plt.show()
+
+# topic results (5 documents, 4 topics, 0.8 max_df)
+# Topic  0
+# brush, grass, green, summer, silence, sent, canvas, boots, shore, wall
+# Topic  1
+# love, watch, course, dish, true, listening, french, sort, happened, plate
+# Topic  2
+# blundered, severity, urn, blame, odious, circus, tobacco, hope, leg, stopping
+# Topic  3
+# lights, lost, flounder, grow, love, reason, necklace, bit, oneself, brooch
+
+# topic results (50 documents, 3 topics, 0.9 max_df)
+# Topic  0
+# lily, rose, people, life, saying, things, room, saw, love, eyes
+# Topic  1
+# cam, boat, james, father, lighthouse, sea, old, look, book, sat
+# Topic  2
+# house, night, summer, light, glass, bast, room, wall, left, long
+
+# topic results (43 documents, 3 topics, 0.9 max_df, by chapter)
+# Topic  0
+# said, did, lily, little, like, things, people, andrew, picture, eyes
+# Topic  1
+# james, cam, father, boat, like, lighthouse, sea, said, book, look
+# Topic  2
+# glass, night, house, room, light, summer, airs, bedroom, long, wall

@@ -34,6 +34,73 @@ def display_topics(model, feature_names, no_top_words, topic_names=None):
             print("\nTopic: '",topic_names[ix], "'")
         print(", ".join([feature_names[i] for i in topic.argsort()[:-no_top_words - 1:-1]]))
 
+# dual axes side by side of vader vs textblob
+def sent_dual(data1, data2, smooth=False, save=False, savefile=None):
+    y1 = sequential_average(text_polar, every=5)
+    y2 = sequential_average(text_polar2, every=5)
+    if smooth == True:
+        x = np.linspace(1, chunks, num=chunks)
+        f1 = interp1d(x, y1, kind='cubic')
+        f2 = interp1d(x, y2, kind='cubic')
+        xnew = np.linspace(1, chunks, num=3000)
+
+        fig, ax1 = plt.subplots()
+
+        color = 'tab:red'
+        ax1.set_xlabel('text chunks')
+        ax1.set_ylabel('polarity (TextBlob)', color=color)
+        ax1.plot(xnew, f1(xnew), color=color)
+        ax1.tick_params(axis='y', labelcolor=color)
+
+        ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
+
+        color = 'tab:blue'
+        ax2.set_ylabel('polarity (Vader)', color=color)  # we already handled the x-label with ax1
+        ax2.plot(xnew, f2(xnew), color=color)
+        ax2.tick_params(axis='y', labelcolor=color)
+
+        fig.tight_layout()  # otherwise the right y-label is slightly clipped
+        if save==True:
+            plt.savefig(savefile, dpi=600, bbox_inches="tight")
+        else:
+            plt.show()
+
+    else:
+        x = range(1, chunks+1)
+
+        fig, ax1 = plt.subplots()
+
+        color = 'tab:red'
+        ax1.set_xlabel('text chunks')
+        ax1.set_ylabel('polarity (TextBlob)', color=color)
+        ax1.plot(x, y1, color=color)
+        ax1.tick_params(axis='y', labelcolor=color)
+
+        ax2 = ax1.twinx()  # instantiate a second axes that shares the same x-axis
+
+        color = 'tab:blue'
+        ax2.set_ylabel('polarity (Vader)', color=color)  # we already handled the x-label with ax1
+        ax2.plot(x, y2, color=color)
+        ax2.tick_params(axis='y', labelcolor=color)
+
+        fig.tight_layout()  # otherwise the right y-label is slightly clipped
+        if save==True:
+            plt.savefig(savefile, dpi=600, bbox_inches="tight")
+        else:
+            plt.show()
+
+def moving_average(a, n=3) :
+    ret = np.cumsum(a, dtype=float)
+    ret[n:] = ret[n:] - ret[:-n]
+    return ret[n - 1:] / n
+
+def sequential_average(a, every=5):
+    a_new = []
+    idx = int(len(a)/every)  # number of text segments
+    for i in range(idx):
+        ave_seg = np.sum(a[i*every:(i+1)*every])/every
+        a_new.append(ave_seg)
+    return a_new
 
 ENGLISH_STOP_WORDS = frozenset([
     "a", "about", "above", "across", "after", "afterwards", "again", "against",
