@@ -45,11 +45,11 @@ display_topics(nmf_model, vectorizer.get_feature_names(), 10)
 
 ###########################
 # text frequencies for noun phrases that don't include stop words
-text_clean_str = ''.join(text_clean)  # continue from line 21 before tokenization
+text_clean_str = ' '.join(text)
 text_clean_blob = TextBlob(text_clean_str).noun_phrases
 text_clean_blob_temp = []
 for item in text_clean_blob:
-    if all(subitem not in stopwords.words('english') for subitem in item.split()):
+    if all(subitem not in stop_words_v5 for subitem in item.split()):
         text_clean_blob_temp.append(item)
 
 # text_clean_blob = [x for x in text_clean_blob if len(x) > 3]
@@ -72,11 +72,11 @@ freq_dict3 = nltk.FreqDist(text_clean_blob_fin)
 freq_dict3.plot(20, cumulative=False)
 
 # plot frequent nouns using word cloud
-wc = WordCloud(width=1600, height=800, max_words=30).generate_from_frequencies(freq_dict3)
+wc = WordCloud(width=1600, height=800, max_words=30).generate_from_frequencies(freq_dict2)
 plt.figure(figsize=(20, 10))
 plt.imshow(wc, interpolation='bilinear')
 plt.axis('off')
-plt.savefig('orlando_wc.png', facecolor='k', bbox_inches="tight")
+plt.savefig('lighthouse_wc.png', facecolor='k', bbox_inches="tight")
 plt.show()
 
 #########################

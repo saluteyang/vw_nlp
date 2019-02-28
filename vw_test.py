@@ -21,6 +21,9 @@ from bokeh.models import Label, LabelSet, ColumnDataSource
 import matplotlib.colors as mcolors
 
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
+import gensim, spacy
+from gensim.utils import lemmatize, simple_preprocess
+import gensim.corpora as corpora
 
 from helpers import *
 
@@ -73,9 +76,9 @@ docs = [(' ').join(x) for x in chunks(text_clean, 50)]
 # docs_concat = docs
 # docs_concat = docs_concat + docs
 # docs = docs_concat
-with open('docs_all3.txt', 'w') as f:
-    for item in docs:
-        f.write("%s\n" % item)
+# with open('docs_all3.txt', 'w') as f:
+#     for item in docs:
+#         f.write("%s\n" % item)
 
 # custom stop words
 vectorizer = TfidfVectorizer(stop_words=potential_stop_words4,
@@ -155,20 +158,20 @@ plotSentiment(text_polar_ch, len(text_chap), save=True, savefile='text_sent_ch.p
 
 # visualize lower dimensions for topic vectors
 # Dominant topic number in each doc
-topic_num = np.argmax(doc_topic2, axis=1)
+topic_num = np.argmax(doc_topic, axis=1)
 
 # tSNE Dimension Reduction
 tsne_model = TSNE(n_components=2, verbose=1, random_state=0, angle=.99, init='pca')
-tsne_nmf = tsne_model.fit_transform(doc_topic2)
+tsne_nmf = tsne_model.fit_transform(doc_topic)
 
 # Plot the Topic Clusters using Bokeh
 TOOLS = "hover,pan,wheel_zoom,box_zoom,reset,save"
-n_topics = 4
+n_topics = 3
 mycolors = np.array([color for name, color in mcolors.TABLEAU_COLORS.items()])
 
 # create a df for tooltip assignment
 doc_topic_p = pd.DataFrame({'topic': topic_num,
-                            'topic_idx': range(1, doc_topic2.shape[0] + 1),
+                            'topic_idx': range(1, doc_topic.shape[0] + 1),
                             'x': tsne_nmf[:, 0],
                             'y': tsne_nmf[:, 1],
                             'color': mycolors[topic_num]})
@@ -209,10 +212,6 @@ display_topics(nmf_model, vectorizer.get_feature_names(), 10)
 # lda modeling (gensim)
 # processing pipeline in function
 
-import gensim, spacy
-from gensim.utils import lemmatize, simple_preprocess
-import gensim.corpora as corpora
-
 def process_words(texts, stop_words=stop_words, allowed_postags=['NOUN', 'ADJ', 'ADV']):
     """Remove Stopwords, Form Bigrams, Trigrams and Lemmatization"""
     texts = [[word for word in simple_preprocess(str(doc)) if word not in stop_words] for doc in texts]
@@ -246,4 +245,36 @@ lda_model = gensim.models.ldamodel.LdaModel(corpus=corpus,
                                            per_word_topics=True)
 
 lda_model.print_topics()
+
+#############################
+# topic models by paragraph
+with open('txt_data/to_the_lighthouse_1927.txt') as f:
+    text = f.readlines()
+
+text_para = [x.split('\n')[0] for x in text]
+
+# filter out any paragraph that contain element of insufficient length
+text_clean = [x for x in text_para if len(x)>50]
+text_clean = [TextBlob(x).words for x in text_clean]
+
+# remove punctuation and lower case all words
+text_clean = [[re.sub('[%s]' % re.escape(string.punctuation), ' ', x.lower()) for x in doc] for doc in text_clean]
+# remove words of length less than 4
+text_clean = [[x for x in doc if len(x)>3] for doc in text_clean]
+
+# re-forming words in doc into docs
+docs = [(' ').join(x) for x in text_clean]
+
+# custom stop words
+vectorizer = TfidfVectorizer(stop_words=potential_stop_words4,
+                             ngram_range=(1, 1),
+                             max_df=0.9)
+doc_word = vectorizer.fit_transform(docs)
+doc_word.shape
+
+# NMF model
+nmf_model = NMF(5)
+doc_topic = nmf_model.fit_transform(doc_word)
+display_topics(nmf_model, vectorizer.get_feature_names(), 10)
+
 
